@@ -32,6 +32,8 @@ export interface StaffPortalAbout {
   copywrite: string | null;
   poweredby: string | null;
   social_visibility?: Record<string, boolean> | null;
+  footer_links?: { heading: string; page_ids: number[] }[] | null;
+  nav_menu?: { label: string; page_ids: number[]; order: number; children: { page_id: number; label: string; order: number }[] }[] | null;
   district?: { id: number; name: string } | null;
   locality?: { id: number; name: string; pincode: string } | null;
 }
@@ -42,7 +44,7 @@ export const useStaffPortalAbout = () => {
   return useQuery({
     queryKey: ABOUT_KEY,
     queryFn: async () => {
-      const res = await apiClient.get('/staff/portal/website/about');
+      const res = await apiClient.get('/vendors/staff/portal/website/about');
       return res.data.data as StaffPortalAbout;
     },
     retry: false,
@@ -51,16 +53,16 @@ export const useStaffPortalAbout = () => {
   });
 };
 
-export const useUpdateStaffPortalAbout = () => {
+export const useUpdateStaffPortalAbout = (successMessage?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<StaffPortalAbout>) => {
-      const res = await apiClient.put('/staff/portal/website/about', data);
+      const res = await apiClient.put('/vendors/staff/portal/website/about', data);
       return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ABOUT_KEY });
-      toast.success('About company updated successfully');
+      toast.success(successMessage ?? 'About company updated successfully');
     },
     onError: (error: unknown) => {
       const err = error as { response?: { data?: { message?: string } } };
@@ -106,7 +108,7 @@ export const useStaffPortalPages = (params?: {
   return useQuery({
     queryKey: [...PAGES_KEY, params],
     queryFn: async () => {
-      const res = await apiClient.get('/staff/portal/pages', { params });
+      const res = await apiClient.get('/vendors/staff/portal/pages', { params });
       return res.data.data as StaffPortalPagesResponse;
     },
     staleTime: 30 * 1000,
@@ -118,7 +120,7 @@ export const useStaffPortalPage = (id: number | null) => {
   return useQuery({
     queryKey: [...PAGES_KEY, id],
     queryFn: async () => {
-      const res = await apiClient.get(`/staff/portal/pages/${id}`);
+      const res = await apiClient.get(`/vendors/staff/portal/pages/${id}`);
       return res.data.data as StaffPortalPage;
     },
     enabled: !!id,
@@ -132,7 +134,7 @@ export const useCreateStaffPortalPage = () => {
   const router = useRouter();
   return useMutation({
     mutationFn: async (data: { name: string; description?: string; content?: string }) => {
-      const res = await apiClient.post('/staff/portal/pages', data);
+      const res = await apiClient.post('/vendors/staff/portal/pages', data);
       return res.data.data as StaffPortalPage;
     },
     onSuccess: (page) => {
@@ -152,7 +154,7 @@ export const useUpdateStaffPortalPage = (id: number) => {
   const router = useRouter();
   return useMutation({
     mutationFn: async (data: { name?: string; description?: string; content?: string }) => {
-      const res = await apiClient.put(`/staff/portal/pages/${id}`, data);
+      const res = await apiClient.put(`/vendors/staff/portal/pages/${id}`, data);
       return res.data.data as StaffPortalPage;
     },
     onSuccess: (page) => {
@@ -171,7 +173,7 @@ export const useDeleteStaffPortalPage = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      await apiClient.delete(`/staff/portal/pages/${id}`);
+      await apiClient.delete(`/vendors/staff/portal/pages/${id}`);
       return id;
     },
     onSuccess: () => {

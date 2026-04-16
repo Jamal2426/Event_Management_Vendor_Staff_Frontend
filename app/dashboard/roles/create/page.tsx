@@ -4,7 +4,7 @@ import { PermissionGuard } from "@/components/common/PermissionGuard";
 
 export default function CreateRolePage() {
   return (
-    <PermissionGuard permission="roles.view">
+    <PermissionGuard permission="roles.create">
       <div className="min-h-screen bg-background transition-all duration-300">
         <div className="p-6">
           <PageHeader title="Create Role" subtitle="Define a new staff role with permissions" />

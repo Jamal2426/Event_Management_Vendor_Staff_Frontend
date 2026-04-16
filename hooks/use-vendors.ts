@@ -130,6 +130,7 @@ export interface VendorAbout extends Vendor {
   district?: { id: number; name: string } | null;
   locality?: { id: number; name: string; pincode: string } | null;
   social_visibility?: SocialVisibility | null;
+  contact_mode?: 'default' | 'alternative' | null;
 }
 
 const VENDOR_ABOUT_KEY = ['vendor-about'] as const;

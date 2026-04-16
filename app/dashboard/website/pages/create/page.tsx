@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useCreateVendorPage } from "@/hooks/use-vendor-pages";
+import { useCreateStaffPortalPage } from "@/hooks/use-staff-portal-website";
+import { PermissionGuard } from "@/components/common/PermissionGuard";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -15,7 +16,7 @@ import { Plus, X, Eye, ArrowLeft } from "lucide-react";
 
 export default function CreateWebsitePage() {
   const router = useRouter();
-  const { mutate: createPage, isPending } = useCreateVendorPage();
+  const { mutate: createPage, isPending } = useCreateStaffPortalPage();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -36,6 +37,7 @@ export default function CreateWebsitePage() {
   };
 
   return (
+    <PermissionGuard permission="pages.create">
     <div className="h-[calc(100vh-86px)] overflow-y-auto px-6 py-8 custom-scrollbar">
       <div className="max-w-[1700px] mx-auto mb-8">
         <h1 className="text-2xl font-bold text-[#1e293b] dark:text-white mb-1 font-poppins">Create Website Page</h1>
@@ -184,6 +186,7 @@ export default function CreateWebsitePage() {
          </DialogContent>
       </Dialog>
     </div>
+    </PermissionGuard>
   );
 }
 

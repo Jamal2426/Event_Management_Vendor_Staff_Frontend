@@ -1,5 +1,10 @@
+import { PermissionGuard } from "@/components/common/PermissionGuard";
 import { MailContent } from './_components/mail-content';
 
 export default function MailPage() {
-  return <MailContent />;
+  return (
+    <PermissionGuard permission="communication.view">
+      <MailContent />
+    </PermissionGuard>
+  );
 }

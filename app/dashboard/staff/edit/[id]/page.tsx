@@ -3,7 +3,7 @@ import { PermissionGuard } from "@/components/common/PermissionGuard";
 
 export default function EditStaffPage() {
   return (
-    <PermissionGuard permission="staff.view">
+    <PermissionGuard permission="staff.edit">
       <div className="min-h-screen bg-background transition-all duration-300">
         <AddStaffContent isEdit={true} />
       </div>

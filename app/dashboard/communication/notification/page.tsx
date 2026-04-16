@@ -1,5 +1,5 @@
-
 'use client';
+import { PermissionGuard } from '@/components/common/PermissionGuard';
 
  
 
@@ -387,7 +387,8 @@ export default function NotificationPage() {
 
   return (
 
-    <div className="h-[calc(100vh-86px)] overflow-y-auto px-6 pt-4 pb-10 custom-scrollbar ">
+    <PermissionGuard permission="communication.view">
+    <div className="h-[calc(100vh-86px)] overflow-y-auto px-6 pt-4 pb-10 custom-scrollbar ">
 
       <div className="space-y-6 max-w-[1700px] mx-auto">
 
@@ -576,7 +577,8 @@ export default function NotificationPage() {
 
     </div>
 
-  );
+    </PermissionGuard>
+  );
 
 }
 

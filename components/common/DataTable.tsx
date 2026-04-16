@@ -30,6 +30,7 @@ interface DataTableProps<T> {
   loading?: boolean;
   emptyContent?: React.ReactNode;
   rowIdKey: keyof T;
+  noCard?: boolean;
 }
 
 export function DataTable<T>({

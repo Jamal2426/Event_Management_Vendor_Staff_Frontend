@@ -1,7 +1,9 @@
 import PagesListContent from "./_components/pages-list-content";
+import { PermissionGuard } from "@/components/common/PermissionGuard";
 
 export default function WebsitePagesPage() {
   return (
+    <PermissionGuard permission="pages.view">
     <div className="h-[calc(100vh-86px)] overflow-y-auto px-6 py-8 custom-scrollbar">
       <div className="max-w-[1700px] mx-auto space-y-6">
         <div className="animate-in fade-in slide-in-from-bottom duration-1000">
@@ -14,5 +16,6 @@ export default function WebsitePagesPage() {
         </div>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

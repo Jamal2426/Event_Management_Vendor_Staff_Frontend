@@ -7,7 +7,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useVendorPage } from "@/hooks/use-vendor-pages";
+import { useStaffPortalPage } from "@/hooks/use-staff-portal-website";
+import { PermissionGuard } from "@/components/common/PermissionGuard";
 
 interface ViewPageProps {
   params: Promise<{ id: string }>;
@@ -16,7 +17,7 @@ interface ViewPageProps {
 export default function ViewWebsitePage({ params }: ViewPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: page, isLoading } = useVendorPage(Number(id));
+  const { data: page, isLoading } = useStaffPortalPage(Number(id));
 
   if (isLoading) {
     return (
@@ -34,6 +35,7 @@ export default function ViewWebsitePage({ params }: ViewPageProps) {
   const htmlContent = page.content || "<p>No content given.</p>";
 
   return (
+    <PermissionGuard permission="pages.view">
     <div className="h-[calc(100vh-86px)] overflow-y-auto px-6 py-8 custom-scrollbar bg-slate-50/40 dark:bg-transparent">
       <div className="max-w-[1200px] mx-auto space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -103,5 +105,6 @@ export default function ViewWebsitePage({ params }: ViewPageProps) {
         </Card>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

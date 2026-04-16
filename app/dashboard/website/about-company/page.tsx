@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Plus, X, Phone, Mail, MapPin, Globe, Share2, Facebook, Twitter, MessageCircle, Send, Youtube, Instagram, Linkedin, Music, Pin, Image as ImageIcon, Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
-import { useVendorAbout, useUpdateVendorAbout } from "@/hooks/use-vendors";
+import { useStaffPortalAbout, useUpdateStaffPortalAbout } from "@/hooks/use-staff-portal-website";
+import { PermissionGuard } from "@/components/common/PermissionGuard";
 import apiClient from "@/lib/api-client";
 
 export default function AboutCompanyPage() {
@@ -18,8 +19,8 @@ export default function AboutCompanyPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [contactMode, setContactMode] = useState<"default" | "alternative">("default");
 
-  const { data: vendor, isLoading } = useVendorAbout();
-  const updateMutation = useUpdateVendorAbout();
+  const { data: vendor, isLoading } = useStaffPortalAbout();
+  const updateMutation = useUpdateStaffPortalAbout();
 
   const [logoImage, setLogoImage] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState("");
@@ -73,7 +74,7 @@ export default function AboutCompanyPage() {
       const fd = new FormData();
       fd.append('file', file);
       fd.append('folder', 'vendors');
-      const res = await apiClient.post('/vendors/auth/upload', fd, {
+      const res = await apiClient.post('/vendors/staff/portal/website/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       const url = res.data.data?.file?.url || res.data.data?.url;
@@ -92,7 +93,7 @@ export default function AboutCompanyPage() {
         const fd = new FormData();
         fd.append('file', blob, 'logo.jpg');
         fd.append('folder', 'vendors');
-        const res = await apiClient.post('/vendors/auth/upload', fd, {
+        const res = await apiClient.post('/vendors/staff/portal/website/upload', fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         logoUrl = res.data.data?.file?.url || res.data.data?.url || undefined;
@@ -131,6 +132,7 @@ export default function AboutCompanyPage() {
   }
 
   return (
+    <PermissionGuard permission="about.view">
     <div className="h-[calc(100vh-86px)] overflow-y-auto px-6 py-8 custom-scrollbar">
       {/* Page Header */}
       <div className="max-w-[1700px] mx-auto mb-8">
@@ -374,5 +376,6 @@ export default function AboutCompanyPage() {
         </div>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

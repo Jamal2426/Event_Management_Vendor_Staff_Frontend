@@ -39,6 +39,7 @@ import { toast } from "sonner";
 import { FormGroup } from "@/components/common/FormGroup";
 import { CommonCard } from "@/components/common/CommonCard";
 import { ActionFooter } from "@/components/common/ActionFooter";
+import { ImageCropper } from "@/components/common/ImageCropper";
 
 // High-Fidelity Location Hierarchy Data
 const LOCATION_DATA: Record<string, any> = {
@@ -900,6 +901,9 @@ export function AddClientContent({
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     mobile: "",
@@ -1054,46 +1058,28 @@ export function AddClientContent({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isView) return;
     const file = e.target.files?.[0];
+    const target = e.target;
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast.error("Image size exceeds 10MB.");
+        target.value = "";
         return;
       }
-
       const reader = new FileReader();
       reader.onloadend = () => {
-        const img = new Image();
-        img.src = reader.result as string;
-        img.onload = () => {
-          // Professional client-side compression
-          const canvas = document.createElement("canvas");
-          const MAX_SIZE = 400; // Small but high quality for avatars
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          // Save as lightweight JPEG
-          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8);
-          setProfilePic(compressedBase64);
-        };
+        setImageToCrop(reader.result as string);
+        setCropperOpen(true);
+        target.value = "";
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = (croppedBase64: string) => {
+    setProfilePic(croppedBase64);
+    if (errors.profilePic) setErrors((prev) => ({ ...prev, profilePic: "" }));
+    setCropperOpen(false);
+    setImageToCrop(null);
   };
 
   return (
@@ -1631,6 +1617,18 @@ export function AddClientContent({
           </div>
         </div>
       </div>
+
+      {imageToCrop && (
+        <ImageCropper
+          open={cropperOpen}
+          imageSrc={imageToCrop}
+          onClose={() => { setCropperOpen(false); setImageToCrop(null); }}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+          outputWidth={400}
+          outputHeight={400}
+        />
+      )}
     </div>
   );
 }

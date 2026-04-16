@@ -9,7 +9,7 @@ import { DataTableSearch } from "@/components/common/DataTableSearch";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { ActionButton } from "@/components/common/ActionButton";
 import { ColumnToggle } from "@/components/common/ColumnToggle";
-import { useVendorPages, useDeleteVendorPage, VendorPage } from "@/hooks/use-vendor-pages";
+import { useStaffPortalPages, useDeleteStaffPortalPage, StaffPortalPage } from "@/hooks/use-staff-portal-website";
 
 interface PageRow {
   id: number;
@@ -25,7 +25,7 @@ export default function PagesListContent() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
 
-  const { data: pagesData, isLoading } = useVendorPages({
+  const { data: pagesData, isLoading } = useStaffPortalPages({
     page: currentPage,
     limit: itemsPerPage,
     search: searchQuery || undefined,
@@ -33,10 +33,10 @@ export default function PagesListContent() {
     sort_order: sortConfig.order || undefined,
   });
 
-  const { mutate: deletePage } = useDeleteVendorPage();
+  const { mutate: deletePage } = useDeleteStaffPortalPage();
 
   const pages: PageRow[] = useMemo(() => {
-    return (pagesData?.data ?? []).map((p: VendorPage) => ({
+    return (pagesData?.data ?? []).map((p: StaffPortalPage) => ({
       id: p.id,
       name: p.name,
       created_at: new Date(p.createdAt).toLocaleDateString(),

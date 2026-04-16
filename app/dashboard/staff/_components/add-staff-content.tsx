@@ -49,6 +49,7 @@ import { toast } from "sonner";
 import { FormGroup } from "@/components/common/FormGroup";
 import { CommonCard } from "@/components/common/CommonCard";
 import { ActionFooter } from "@/components/common/ActionFooter";
+import { ImageCropper } from "@/components/common/ImageCropper";
 
 // High-Fidelity Location Hierarchy Data
 const LOCATION_DATA: Record<string, any> = {
@@ -368,6 +369,9 @@ export default function AddStaffContent({ initialData, isEdit = false, isView = 
   const [profilePic, setProfilePic] = useState<string | null>(effectiveData?.profile_pic || null);
   const [showPassword, setShowPassword] = useState(false);
 
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: effectiveData?.name || "",
     designation: effectiveData?.designation || "",
@@ -437,14 +441,23 @@ export default function AddStaffContent({ initialData, isEdit = false, isView = 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    const target = e.target;
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfilePic(reader.result as string);
-        if (errors.profilePic) setErrors(prev => ({ ...prev, profilePic: "" }));
+        setImageToCrop(reader.result as string);
+        setCropperOpen(true);
+        target.value = "";
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = (croppedBase64: string) => {
+    setProfilePic(croppedBase64);
+    if (errors.profilePic) setErrors(prev => ({ ...prev, profilePic: "" }));
+    setCropperOpen(false);
+    setImageToCrop(null);
   };
 
   const validateForm = () => {
@@ -908,6 +921,18 @@ export default function AddStaffContent({ initialData, isEdit = false, isView = 
         </div>
       </div>
     </div>
+
+    {imageToCrop && (
+      <ImageCropper
+        open={cropperOpen}
+        imageSrc={imageToCrop}
+        onClose={() => { setCropperOpen(false); setImageToCrop(null); }}
+        onCropComplete={handleCropComplete}
+        aspectRatio={1}
+        outputWidth={400}
+        outputHeight={400}
+      />
+    )}
   </div>
 );
 }

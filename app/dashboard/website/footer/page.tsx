@@ -33,13 +33,15 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { WEBSITE_CONTENT_PAGES } from "@/lib/data";
-import { useVendorAbout, useUpdateVendorAbout } from "@/hooks/use-vendors";
+import { useStaffPortalAbout, useUpdateStaffPortalAbout } from "@/hooks/use-staff-portal-website";
+import { useStaffPortalPages } from "@/hooks/use-staff-portal-website";
 import apiClient from "@/lib/api-client";
+import { PermissionGuard } from "@/components/common/PermissionGuard";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface QuickLinkItem {
   id: string;
+  page_id: number;
   pageName: string;
   url: string;
 }
@@ -74,9 +76,11 @@ const DEFAULT_VISIBILITY = Object.fromEntries(
 export default function FooterPage() {
   const router = useRouter();
 
-  // ── API hooks (same pattern as AboutCompanyPage) ──
-  const { data: vendor, isLoading } = useVendorAbout();
-  const updateMutation = useUpdateVendorAbout();
+  // ── API hooks ──
+  const { data: vendor, isLoading } = useStaffPortalAbout();
+  const updateMutation = useUpdateStaffPortalAbout('Footer saved successfully');
+  const { data: pagesData } = useStaffPortalPages({ limit: 100 });
+  const vendorPages = pagesData?.data ?? [];
 
   // ── Logo & Brand ──────────────────────────────────
   const [logo, setLogo] = useState<string>("");
@@ -111,9 +115,7 @@ export default function FooterPage() {
   );
 
   // ── Quick Links Columns ───────────────────────────
-  const [columns, setColumns] = useState<QuickLinkColumn[]>([
-    { id: "c1", title: "", links: [{ id: "l1", pageName: "", url: "#" }] },
-  ]);
+  const [columns, setColumns] = useState<QuickLinkColumn[]>([]);
   const [pageSearchByCol, setPageSearchByCol] = useState<{
     [key: string]: string;
   }>({});
@@ -168,7 +170,31 @@ export default function FooterPage() {
     });
   }, [vendor]);
 
-  // ── Logo upload (same pattern as AboutCompanyPage) ──
+  // ── Load footer_links once both vendor + pages are ready ──
+  const [footerLinksLoaded, setFooterLinksLoaded] = useState(false);
+  useEffect(() => {
+    if (footerLinksLoaded || !vendor || !vendorPages.length) return;
+    setFooterLinksLoaded(true);
+    const raw = vendor.footer_links;
+    if (raw?.length) {
+      setColumns(
+        raw.map((col, i) => ({
+          id: `c${i}-loaded`,
+          title: col.heading,
+          links: col.page_ids
+            .map((pid, j) => {
+              const page = vendorPages.find((p) => p.id === pid);
+              return page
+                ? { id: `l${i}-${j}`, page_id: page.id, pageName: page.name, url: `/dashboard/website/pages/view/${page.id}` }
+                : null;
+            })
+            .filter(Boolean) as QuickLinkItem[],
+        }))
+      );
+    }
+  }, [vendor, vendorPages, footerLinksLoaded]);
+
+  // ── Logo upload ──
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -176,7 +202,7 @@ export default function FooterPage() {
       const fd = new FormData();
       fd.append("file", file);
       fd.append("folder", "vendors");
-      const res = await apiClient.post("/vendors/auth/upload", fd, {
+      const res = await apiClient.post("/vendors/staff/portal/website/upload", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const url = res.data.data?.file?.url || res.data.data?.url;
@@ -186,7 +212,7 @@ export default function FooterPage() {
     }
   };
 
-  // ── Save (same mutation + base64 guard as AboutCompanyPage) ──
+  // ── Save ──
   const handleSave = async () => {
     let logoUrl: string | undefined = logo || undefined;
 
@@ -197,7 +223,7 @@ export default function FooterPage() {
         const fd = new FormData();
         fd.append("file", blob, "logo.jpg");
         fd.append("folder", "vendors");
-        const res = await apiClient.post("/vendors/auth/upload", fd, {
+        const res = await apiClient.post("/vendors/staff/portal/website/upload", fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         logoUrl = res.data.data?.file?.url || res.data.data?.url || undefined;
@@ -207,6 +233,11 @@ export default function FooterPage() {
         return;
       }
     }
+
+    const footer_links = columns.map((col) => ({
+      heading: col.title,
+      page_ids: col.links.map((l) => l.page_id).filter(Boolean),
+    }));
 
     await updateMutation.mutateAsync({
       company_name: companyName,
@@ -222,6 +253,7 @@ export default function FooterPage() {
       copywrite: copyright,
       ...socialUrls,
       social_visibility: socialVisibility,
+      footer_links,
     } as never);
   };
 
@@ -233,7 +265,7 @@ export default function FooterPage() {
       {
         id: Date.now().toString(),
         title: "",
-        links: [{ id: Date.now().toString(), pageName: "", url: "#" }],
+        links: [],
       },
     ]);
   };
@@ -290,6 +322,7 @@ export default function FooterPage() {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────────
   return (
+    <PermissionGuard permission="footer.view">
     <div className="h-[calc(100vh-86px)] overflow-y-auto px-6 py-8 custom-scrollbar">
       <div className="max-w-[1700px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom duration-1000">
         {/* Header */}
@@ -502,7 +535,7 @@ export default function FooterPage() {
                             </div>
                           </div>
                           <div className="max-h-[200px] overflow-y-auto custom-scrollbar p-1.5 bg-white dark:bg-sidebar">
-                            {WEBSITE_CONTENT_PAGES.filter((p) =>
+                            {vendorPages.filter((p) =>
                               p.name
                                 .toLowerCase()
                                 .includes(
@@ -510,7 +543,7 @@ export default function FooterPage() {
                                 ),
                             ).map((page) => {
                               const isSelected = col.links.some(
-                                (l) => l.pageName === page.name,
+                                (l) => l.page_id === page.id,
                               );
                               return (
                                 <div
@@ -523,8 +556,7 @@ export default function FooterPage() {
                                             ? {
                                                 ...c,
                                                 links: c.links.filter(
-                                                  (l) =>
-                                                    l.pageName !== page.name,
+                                                  (l) => l.page_id !== page.id,
                                                 ),
                                               }
                                             : c,
@@ -540,6 +572,7 @@ export default function FooterPage() {
                                                   ...c.links,
                                                   {
                                                     id: `l-${Date.now()}`,
+                                                    page_id: page.id,
                                                     pageName: page.name,
                                                     url: `/dashboard/website/pages/view/${page.id}`,
                                                   },
@@ -815,5 +848,6 @@ export default function FooterPage() {
         </div>
       </div>
     </div>
+    </PermissionGuard>
   );
 }

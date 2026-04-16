@@ -8,7 +8,7 @@ type ButtonProps = React.ComponentProps<typeof Button>;
 interface ActionButtonProps extends ButtonProps {
   label: string;
   icon?: LucideIcon;
-  variant_type?: "Client" | "Staff" | "Payment";
+  variant_type?: "Client" | "Staff" | "Payment" | "Event";
   className?:string;
   onClick?: () => void;
 }

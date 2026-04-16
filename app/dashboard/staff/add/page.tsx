@@ -3,7 +3,7 @@ import { PermissionGuard } from "@/components/common/PermissionGuard";
 
 export default function AddStaffPage() {
   return (
-    <PermissionGuard permission="staff.view">
+    <PermissionGuard permission="staff.create">
       <div className="min-h-screen bg-background transition-all duration-300">
         <AddStaffContent />
       </div>
